@@ -29,7 +29,7 @@ type AutoFilter struct {
 	Color string `json:"color"`
 }
 
-func NewAuto(model string, color string) *Auto {
+func newAuto(model string, color string) *Auto {
 	newUUID := uuid.New()
 	return &Auto{
 		Id:    newUUID,
@@ -123,7 +123,7 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Write(answer)
 }
 
-func CreateAuto(w http.ResponseWriter, r *http.Request) {
+func createAuto(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method error", 409)
 		return
@@ -141,7 +141,7 @@ func CreateAuto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newAuto := NewAuto(filter.Model, filter.Color)
+	newAuto := newAuto(filter.Model, filter.Color)
 	autoJson, err := json.Marshal(newAuto)
 	if err != nil {
 		log.Fatal(err)
@@ -154,7 +154,7 @@ func CreateAuto(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetAuto(w http.ResponseWriter, r *http.Request) {
+func getAuto(w http.ResponseWriter, r *http.Request) {
 	model := r.URL.Query().Get("model")
 	if model == "" {
 		http.Error(w, "Missing model parametr", http.StatusBadRequest)
@@ -169,7 +169,7 @@ func GetAuto(w http.ResponseWriter, r *http.Request) {
 	w.Write(auto)
 }
 
-func GetAutos(w http.ResponseWriter, r *http.Request) {
+func getAutos(w http.ResponseWriter, r *http.Request) {
 	query := `SELECT data FROM auto;`
 	rows, err := conn.Query(query)
 	if err != nil {
@@ -206,9 +206,9 @@ func main() {
 
 	createTableIfNotExist("auto")
 
-	http.HandleFunc("/new", CreateAuto)
-	http.HandleFunc("/get", GetAutos)
-	http.HandleFunc("/get_auto", GetAuto)
+	http.HandleFunc("/new", createAuto)
+	http.HandleFunc("/get", getAutos)
+	http.HandleFunc("/get_auto", getAuto)
 	http.HandleFunc("/healthcheck", healthCheck)
 
 	http.ListenAndServe(":8888", nil)
