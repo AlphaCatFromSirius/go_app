@@ -125,7 +125,7 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 
 func createAuto(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method error", 409)
+		http.Error(w, "Method error", http.StatusMethodNotAllowed)
 		return
 	}
 	var filter AutoFilter
@@ -144,26 +144,27 @@ func createAuto(w http.ResponseWriter, r *http.Request) {
 	newAuto := newAuto(filter.Model, filter.Color)
 	autoJson, err := json.Marshal(newAuto)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "Marshal error", http.StatusInternalServerError)
 		return
 	}
 	query := `INSERT INTO auto (data) VALUES ($1)`
 	_, err = conn.Exec(query, autoJson)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
 	}
 }
 
 func getAuto(w http.ResponseWriter, r *http.Request) {
 	model := r.URL.Query().Get("model")
 	if model == "" {
-		http.Error(w, "Missing model parametr", http.StatusBadRequest)
+		http.Error(w, "Missing model parameter", http.StatusBadRequest)
 		return
 	}
 	var auto []byte
 	query := `SELECT data FROM auto WHERE data->>'model' = $1 LIMIT 1;`
 	if err := conn.QueryRow(query, model).Scan(&auto); err == sql.ErrNoRows {
-		http.Error(w, "Now rows", http.StatusBadRequest)
+		http.Error(w, "No data", http.StatusBadRequest)
 		return
 	}
 	w.Write(auto)
@@ -211,5 +212,6 @@ func main() {
 	http.HandleFunc("/get_auto", getAuto)
 	http.HandleFunc("/healthcheck", healthCheck)
 
+	log.Print("Starting server on port 8888")
 	http.ListenAndServe(":8888", nil)
 }
