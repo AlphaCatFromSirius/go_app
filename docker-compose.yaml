@@ -20,6 +20,11 @@ services:
       - pg_volume:/var/lib
     networks:
       - db_net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "bender"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
   
   server:
     image: go_app:v0.3
