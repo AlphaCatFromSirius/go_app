@@ -21,7 +21,7 @@ services:
     networks:
       - db_net
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "bender"]
+      test: ["CMD", "pg_isready", "-s"]
       interval: 30s
       timeout: 10s
       retries: 5
